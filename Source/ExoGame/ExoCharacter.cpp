@@ -25,7 +25,7 @@ AExoCharacter::AExoCharacter()
 	CameraBoom->SetUsingAbsoluteRotation(true); // Rotation of the character should not affect rotation of boom
 	CameraBoom->bDoCollisionTest = false;
 	CameraBoom->TargetArmLength = 1750.f;
-	CameraBoom->SocketOffset = FVector(0.f, 0.f, 75.f);
+	//CameraBoom->SocketOffset = FVector(0.f, 0.f, 75.f);
 	CameraBoom->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
 
 	// Create a camera and attach to boom
@@ -37,10 +37,10 @@ AExoCharacter::AExoCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Face in the direction we are moving..
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 2160.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->GravityScale = 2.f;
-	GetCharacterMovement()->AirControl = 0.80f;
+	GetCharacterMovement()->AirControl = 10.f;
 	GetCharacterMovement()->JumpZVelocity = 1000.f;
 	GetCharacterMovement()->GroundFriction = 3.f;
-	GetCharacterMovement()->MaxWalkSpeed = 600.f;
+	GetCharacterMovement()->MaxWalkSpeed = 1000.f;
 	GetCharacterMovement()->MaxFlySpeed = 600.f;
 }
 
