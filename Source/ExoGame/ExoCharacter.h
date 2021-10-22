@@ -20,12 +20,32 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
+	FVector CurrentVelocity;
+	FVector LaunchVelocity;
+
+	FTimerHandle DashTimer;
+	bool CanDash = true;
+	bool InDash = false;
+	
+	float UpAxis;
+	float RightAxis;
+	float AngleThreshold = 0.33f;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	/** Called for side to side input */
 	void MoveRight(float Value);
+
+	/** Called for dash ability */
+	void Dash();
+	void EndDash();
+
+	void Reset();
+
+	void SetUpAxis(float Value);
+	void SetRightAxis(float Value);
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
