@@ -10,6 +10,8 @@
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
+#include "NiagaraFunctionLibrary.h"
+
 
 // Sets default values
 AExoCharacter::AExoCharacter()
@@ -37,8 +39,9 @@ AExoCharacter::AExoCharacter()
 	SideViewCameraComponent->bUsePawnControlRotation = false; // We don't want the controller rotating the camera
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Face in the direction we are moving..
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 2160.0f, 0.0f); // ...at this rotation rate
+	//changed this to false for aiming testing
+	GetCharacterMovement()->bOrientRotationToMovement = false; // Face in the direction we are moving..
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 2160.f, 0.f); // ...at this rotation rate
 	GetCharacterMovement()->GravityScale = 3.f;
 	GetCharacterMovement()->AirControl = 1.f;
 	GetCharacterMovement()->JumpZVelocity = 1500.f;
@@ -86,29 +89,70 @@ void AExoCharacter::MoveRight(float Value)
 
 void AExoCharacter::Dash()
 {
-	if (CanDash && !InDash)
+	if (DashOffCooldown && CanDash && !InDash)
 	{
 		CanDash = false;
+		DashOffCooldown = false;
 		InDash = true;
+		
+		SetDashAxis();
+
 		CurrentVelocity = GetVelocity();
 		const float LaunchMultiplier = 3000.f;
-		const float YVelocity = -RightAxis;
-		const float ZVelocity = UpAxis;
+		const float YVelocity = -DashRightAxis;
+		const float ZVelocity = DashUpAxis;
 		LaunchVelocity = FVector(0, YVelocity, ZVelocity);
 		LaunchVelocity.Normalize();
 		LaunchVelocity *= LaunchMultiplier;
 
 		LaunchCharacter(LaunchVelocity, true, true);
+		//GetCharacterMovement()->AirControl = 100.f;
+		//UNiagaraFunctionLibrary::SpawnSystemAttached(ThrusterEffect, GetMesh(), TEXT("ThrusterSocket"), FVector(1), FRotator(1), EAttachLocation::KeepRelativeOffset, true, true, ENCPoolMethod::AutoRelease, true);
 
-
-		GetWorldTimerManager().SetTimer(DashTimer, this, &AExoCharacter::EndDash, 0.15);
+		GetWorldTimerManager().SetTimer(DashEndTimer, this, &AExoCharacter::EndDash, 0.15);
+		GetWorldTimerManager().SetTimer(DashCooldownTimer, this, &AExoCharacter::ResetCanDash, DashCooldown);
 	}
+}
+
+void AExoCharacter::SetDashAxis()
+{
+	if (UpAxis < DashAngleThreshold)
+	{
+		DashUpAxis = SideDashCompensation;
+		if (GetActorForwardVector().Y <= 0)
+		{
+			DashRightAxis = 1.f;
+		} 
+		else
+		{
+			DashRightAxis = -1.f;
+		}
+		
+	}
+	else
+	{
+		DashUpAxis = 1.f;
+
+		DashRightAxis = 0.f;
+	}
+
+	//overwrite DashRightAxis if over threshold
+	if (RightAxis > DashAngleThreshold)
+		DashRightAxis = 1.f;
+	else if (RightAxis < -DashAngleThreshold)
+		DashRightAxis = -1.f;
 }
 
 void AExoCharacter::EndDash()
 {
 	InDash = false;
 	LaunchCharacter(LaunchVelocity / 1.5, true, true);
+	GetCharacterMovement()->AirControl = 1.f;
+}
+
+void AExoCharacter::ResetCanDash()
+{
+	DashOffCooldown = true;
 }
 
 void AExoCharacter::Reset()
@@ -118,14 +162,30 @@ void AExoCharacter::Reset()
 
 void AExoCharacter::SetUpAxis(float Value)
 {
-	if (Value > AngleThreshold) UpAxis = 1.f;
-	else if (Value < -AngleThreshold) UpAxis = -1.f;
-	else UpAxis = 0.2f;
+	UpAxis = Value;
 }
 
 void AExoCharacter::SetRightAxis(float Value)
 {
-	if (Value > AngleThreshold) RightAxis = 1.f;
-	else if (Value < -AngleThreshold) RightAxis = -1.f;
-	else RightAxis = 0.f;
+	RightAxis = Value;
+}
+
+float AExoCharacter::GetDashUpAxis()
+{
+	return DashUpAxis;
+}
+
+float AExoCharacter::GetDashRightAxis()
+{
+	return DashRightAxis;
+}
+
+bool AExoCharacter::GetInDash()
+{
+	return InDash;
+}
+
+float AExoCharacter::GetSideDashCompensation()
+{
+	return SideDashCompensation;
 }

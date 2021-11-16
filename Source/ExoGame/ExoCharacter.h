@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "ExoCharacter.generated.h"
 
+class UNiagaraSystem;
+
 UCLASS()
 class EXOGAME_API AExoCharacter : public ACharacter
 {
@@ -20,16 +22,25 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* ThrusterEffect;
+
 	FVector CurrentVelocity;
 	FVector LaunchVelocity;
 
-	FTimerHandle DashTimer;
+	FTimerHandle DashEndTimer;
+	FTimerHandle DashCooldownTimer;
+	float DashCooldown = 1.f;
 	bool CanDash = true;
+	bool DashOffCooldown = true;
 	bool InDash = false;
 	
-	float UpAxis;
-	float RightAxis;
-	float AngleThreshold = 0.33f;
+	float UpAxis = 0.f;
+	float RightAxis = 0.f;
+	float DashUpAxis = 0.f;
+	float DashRightAxis = 0.f;        
+	float SideDashCompensation = 0.2f;
+	float DashAngleThreshold = 0.33f;
 
 protected:
 	// Called when the game starts or when spawned
@@ -40,7 +51,9 @@ protected:
 
 	/** Called for dash ability */
 	void Dash();
+	void SetDashAxis();
 	void EndDash();
+	void ResetCanDash();
 
 	void Reset();
 
@@ -61,4 +74,16 @@ public:
 	FORCEINLINE class UCameraComponent* GetSideViewCameraComponent() const { return SideViewCameraComponent; }
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	
+	UFUNCTION(BlueprintPure)
+	bool GetInDash();
+
+	UFUNCTION(BlueprintPure)
+	float GetDashUpAxis();
+	
+	UFUNCTION(BlueprintPure)
+	float GetDashRightAxis();
+
+	UFUNCTION(BlueprintPure)
+	float GetSideDashCompensation();
 };
