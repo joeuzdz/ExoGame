@@ -10,7 +10,10 @@
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
-#include "NiagaraFunctionLibrary.h"
+#include "DrawDebugHelpers.h"
+#include "Projectile.h"
+
+//#include "NiagaraFunctionLibrary.h"
 
 
 // Sets default values
@@ -37,10 +40,11 @@ AExoCharacter::AExoCharacter()
 	SideViewCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("SideViewCamera"));
 	SideViewCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	SideViewCameraComponent->bUsePawnControlRotation = false; // We don't want the controller rotating the camera
+	
 
 	// Configure character movement
 	//changed this to false for aiming testing
-	GetCharacterMovement()->bOrientRotationToMovement = false; // Face in the direction we are moving..
+	GetCharacterMovement()->bOrientRotationToMovement = true; // Face in the direction we are moving..
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 2160.f, 0.f); // ...at this rotation rate
 	GetCharacterMovement()->GravityScale = 3.f;
 	GetCharacterMovement()->AirControl = 1.f;
@@ -64,7 +68,8 @@ void AExoCharacter::Tick(float DeltaTime)
 	if (!GetCharacterMovement()->IsFalling())
 	{
 		CanDash = true;
-	}
+	} 
+	
 }
 
 // Called to bind functionality to input
@@ -78,6 +83,8 @@ void AExoCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction(TEXT("Dash"), EInputEvent::IE_Pressed, this, &AExoCharacter::Dash);
 	PlayerInputComponent->BindAction(TEXT("Reset"), EInputEvent::IE_Pressed, this, &AExoCharacter::Reset);
+	PlayerInputComponent->BindAction(TEXT("Shoot"), EInputEvent::IE_Pressed, this, &AExoCharacter::Shoot);
+	PlayerInputComponent->BindAction(TEXT("Shoot"), EInputEvent::IE_Released, this, &AExoCharacter::EndShoot);
 
 }
 
@@ -188,4 +195,37 @@ bool AExoCharacter::GetInDash()
 float AExoCharacter::GetSideDashCompensation()
 {
 	return SideDashCompensation;
+}
+
+void AExoCharacter::Shoot()
+{
+	IsShooting = 1.f;
+	UE_LOG(LogTemp, Warning, TEXT("is shooting"));
+	GetWorldTimerManager().SetTimer(FireTimer, this, &AExoCharacter::Fire, FireRate, true);
+}
+
+void AExoCharacter::EndShoot()
+{
+	IsShooting = 0.f;
+	UE_LOG(LogTemp, Warning, TEXT("is done shooting"));
+
+	GetWorldTimerManager().ClearTimer(FireTimer);
+}
+
+float AExoCharacter::GetIsShooting()
+{
+	return IsShooting;
+}
+
+void AExoCharacter::Fire()
+{
+	if (!InDash) {
+		UE_LOG(LogTemp, Warning, TEXT("FIRE"));
+		FVector Location = GetMesh()->GetSocketLocation("EAR_Socket");
+		//DrawDebugSphere(GetWorld(), EARSocketLocation, 20.f, 10.f, FColor::Red, false, 3); 
+		FRotator Rotation = GetMesh()->GetSocketRotation("EAR_Socket");
+
+		GetWorld()->SpawnActor<AProjectile>(ProjectileClass, Location, Rotation);
+	}
+	
 }

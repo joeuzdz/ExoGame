@@ -22,6 +22,9 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Combat");
+	TSubclassOf<class AProjectile> ProjectileClass;
+
 	UPROPERTY(EditAnywhere)
 	UNiagaraSystem* ThrusterEffect;
 
@@ -42,6 +45,10 @@ private:
 	float SideDashCompensation = 0.2f;
 	float DashAngleThreshold = 0.33f;
 
+	float IsShooting = 0.f;	
+	FTimerHandle FireTimer;
+	float FireRate = 0.025f;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -59,6 +66,10 @@ protected:
 
 	void SetUpAxis(float Value);
 	void SetRightAxis(float Value);
+
+	void Shoot();
+	void EndShoot();	 
+	void Fire();
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -86,4 +97,7 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	float GetSideDashCompensation();
+
+	UFUNCTION(BlueprintPure)
+	float GetIsShooting();
 };
