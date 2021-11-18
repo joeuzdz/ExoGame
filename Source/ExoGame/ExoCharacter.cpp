@@ -200,16 +200,25 @@ float AExoCharacter::GetSideDashCompensation()
 void AExoCharacter::Shoot()
 {
 	IsShooting = 1.f;
-	UE_LOG(LogTemp, Warning, TEXT("is shooting"));
+	//UE_LOG(LogTemp, Warning, TEXT("is shooting"));
 	GetWorldTimerManager().SetTimer(FireTimer, this, &AExoCharacter::Fire, FireRate, true);
+
+	GetWorldTimerManager().ClearTimer(StopAimingTimer);
 }
 
 void AExoCharacter::EndShoot()
 {
-	IsShooting = 0.f;
-	UE_LOG(LogTemp, Warning, TEXT("is done shooting"));
+	//UE_LOG(LogTemp, Warning, TEXT("is done shooting"));
 
 	GetWorldTimerManager().ClearTimer(FireTimer);
+
+	GetWorldTimerManager().SetTimer(StopAimingTimer, this, &AExoCharacter::StopAiming, StopAimingRate, false);
+}
+
+void AExoCharacter::StopAiming()
+{
+	IsShooting = 0.f;
+	GetWorldTimerManager().ClearTimer(StopAimingTimer);
 }
 
 float AExoCharacter::GetIsShooting()
@@ -224,7 +233,6 @@ void AExoCharacter::Fire()
 		FVector Location = GetMesh()->GetSocketLocation("EAR_Socket");
 		//DrawDebugSphere(GetWorld(), EARSocketLocation, 20.f, 10.f, FColor::Red, false, 3); 
 		FRotator Rotation = GetMesh()->GetSocketRotation("EAR_Socket");
-
 		GetWorld()->SpawnActor<AProjectile>(ProjectileClass, Location, Rotation);
 	}
 	

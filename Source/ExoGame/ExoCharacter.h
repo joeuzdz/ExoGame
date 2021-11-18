@@ -33,7 +33,7 @@ private:
 
 	FTimerHandle DashEndTimer;
 	FTimerHandle DashCooldownTimer;
-	float DashCooldown = 1.f;
+	float DashCooldown = 0.5f;
 	bool CanDash = true;
 	bool DashOffCooldown = true;
 	bool InDash = false;
@@ -46,6 +46,8 @@ private:
 	float DashAngleThreshold = 0.33f;
 
 	float IsShooting = 0.f;	
+	FTimerHandle StopAimingTimer;
+	float StopAimingRate = 1.f;
 	FTimerHandle FireTimer;
 	float FireRate = 0.025f;
 
@@ -69,6 +71,7 @@ protected:
 
 	void Shoot();
 	void EndShoot();	 
+	void StopAiming();
 	void Fire();
 
 	// Called to bind functionality to input
